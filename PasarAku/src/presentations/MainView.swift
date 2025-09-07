@@ -8,61 +8,70 @@ import SwiftUI
 
 struct MainView: View {
     @State private var selectedTab = 0
+    @State private var showSheet = false
 
     var body: some View {
-        VStack {
+        NavigationStack {
             TabView(selection: $selectedTab) {
                 HomeView()
                     .tabItem {
                         if selectedTab == 0 {
-                            Image("ic_dashboard")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_dashboard")
                         } else {
-
-                            Image("ic_dashboard_outline")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_dashboard_outline")
                         }
                         Text("Home")
                     }.tag(0)
 
-                ChatView()
+                Color.clear
                     .tabItem {
                         if selectedTab == 1 {
-                            Image("ic_chat")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_chat")
                         } else {
-                            Image("ic_chat_outline")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_chat_outline")
                         }
                         Text("Chats")
                     }.tag(1)
 
-                AdsView()
+                Color.clear
                     .tabItem {
                         if selectedTab == 2 {
-                            Image("ic_list").renderingMode(.template)
+                            ImageSvg(svg: "ic_list")
                         } else {
-                            Image("ic_list_outline").renderingMode(.template)
+                            ImageSvg(svg: "ic_list_outline")
                         }
                         Text("Ads")
                     }.tag(2)
 
-                ProfileView()
+                Color.clear
                     .tabItem {
                         if selectedTab == 3 {
-                            Image("ic_user")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_user")
                         } else {
-                            Image("ic_user_outline")
-                                .renderingMode(.template)
+                            ImageSvg(svg: "ic_user_outline")
                         }
                         Text("Profile")
                     }.tag(3)
 
             }
-            .accentColor(Color("pasarAkuSecondary"))
+            .onChange(of: selectedTab) { oldValue, newValue in
+                if [1, 2, 3].contains(newValue) {
+                    showSheet = true
+                    selectedTab = 0
+                }
+            }
         }
+        .accentColor(Color("pasarAkuSecondary"))
         .background(.white)
+        .sheet(
+            isPresented: $showSheet,
+            onDismiss: {
+                showSheet = false
+                selectedTab = 0
+            }
+        ) {
+            LoginView(showSheet: $showSheet)
+        }
     }
 }
 

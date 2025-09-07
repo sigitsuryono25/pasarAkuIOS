@@ -1,4 +1,4 @@
-//
+//m
 //  AdsView.swift
 //  PasarAku
 //
@@ -7,7 +7,41 @@
 import SwiftUI
 
 struct AdsView: View {
+    let categoryItem: CategoryItem
+
+    @ObservedObject var adsViewModel: AdsViewModel = AdsViewModel()
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+    ]
+
     var body: some View {
-        Text("AdsView")
+        NavigationStack {
+            ScrollView {
+                let adsItem = adsViewModel.ads
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(adsItem.indices, id: \.self) { index in
+                        let item = adsItem[index]
+                        AdsItemView(adsItem: item)
+                            .onAppear {
+                                if index == adsItem.count - 1 {
+                                    Task {
+                                        await adsViewModel.loadMoreIfNeeded(
+                                            categoryId: categoryItem.id)
+                                    }
+                                }
+                            }
+                    }
+                }
+                .padding()
+                .task {
+                    await adsViewModel.getAdsByCategory(
+                        categoryId: self.categoryItem.id)
+                }
+                .navigationTitle(categoryItem.name)
+                .navigationBarTitleDisplayMode(.automatic)
+            }
+        }
+        .accentColor(Color("pasarAkuSecondary"))
     }
 }

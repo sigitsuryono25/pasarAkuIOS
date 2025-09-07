@@ -9,14 +9,12 @@ import SwiftUI
 
 struct HomeView: View {
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack {
-                    CarouselView()
-                    HomeCategoryView()
-                    AdsView()
-                    Spacer()
-                }
+        ScrollView {
+            VStack {
+                CarouselView()
+                HomeCategoryView()
+                AdsListView()
+                Spacer()
             }
         }
     }
@@ -26,22 +24,12 @@ struct HomeCategoryView: View {
     @ObservedObject var viewModel = HomeViewModel()
 
     var body: some View {
-        VStack(alignment: .trailing) {
-            NavigationLink(
-                destination: CategoryView()
-            ) {
-                Text("View all")
-                    .font(.callout)
-                    .padding(.bottom, 16)
-                    .foregroundColor(Color("pasarAkuSecondary"))
-            }
-
-            HStack {
-                ForEach(self.viewModel.category.prefix(3), id: \.self.id) {
+        ScrollView(.horizontal, showsIndicators: true) {
+            HStack(spacing: 16) {
+                ForEach(self.viewModel.category, id: \.self.id) {
                     item in
                     NavigationLink(
-                        destination: Text(item.name).toolbar(
-                            .hidden, for: .tabBar)
+                        destination: AdsView(categoryItem: item)
                     ) {
                         VStack {
                             ImageWeb(url: item.iconUrl)
@@ -51,14 +39,16 @@ struct HomeCategoryView: View {
                                 .font(.caption)
                                 .padding(.top, 2)
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(width: 70)
+                        .foregroundColor(.primary)
                     }
                 }
             }.task {
-                await viewModel.fetcCategory()
+                await viewModel.fetchCategory()
             }
         }
-        .padding()
+        .padding(.top)
+
     }
 }
 
@@ -90,7 +80,51 @@ struct CarouselView: View {
 }
 
 struct AdsListView: View {
+    @ObservedObject var homeViewModel = HomeViewModel()
+    @State private var showSheet = false
+
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+    ]
+
     var body: some View {
-        Text("AdsListView")
+        let adsItem = homeViewModel.adsItem
+        LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(adsItem.indices, id: \.self) { index in
+                let item = adsItem[index]
+                AdsItemView(
+                    adsItem: item,
+                    onTap: {},
+                    onMoreTap: {
+                        showSheet = true
+                    }
+                )
+                .onAppear {
+                    if index == adsItem.count - 1 {
+                        Task {
+                            await homeViewModel.loadMoreIfNeeded()
+                        }
+                    }
+                }
+                .sheet(
+                    isPresented: $showSheet,
+                    onDismiss: {
+                        showSheet = false
+                    }
+                ) {}
+            }
+        }
+        .padding()
+        .task {
+            await homeViewModel.fetchAds()
+        }
+    }
+
+}
+
+#Preview {
+    NavigationStack {
+        HomeView()
     }
 }

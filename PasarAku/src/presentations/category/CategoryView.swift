@@ -15,7 +15,7 @@ struct CategoryView: View {
                 VStack(alignment: .leading) {
                     ForEach(viewModel.category, id: \.id) {
                         item in
-                        NavigationLink(destination: Text(item.name)) {
+                        NavigationLink(destination: AdsView(categoryItem: item)) {
                             HStack {
                                 ImageWeb(url: item.iconUrl).frame(
                                     width: 40, height: 40)
@@ -37,6 +37,5 @@ struct CategoryView: View {
                 }
             }
         }
-        .toolbar(.hidden, for: .tabBar)
     }
 }
